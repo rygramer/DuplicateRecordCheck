@@ -1,8 +1,19 @@
+/**
+ * @description       : Test class for DuplicateRecordCheck
+ * @author            : Ryan Mercer
+ * @group             : Kicksaw
+ * @last modified on  : 11-27-2021
+ * @last modified by  : Ryan Mercer
+ * Modifications Log
+ * Ver   Date         Author        Modification
+ * 1.0   06-16-2021   Ryan Mercer   Initial Version
+ * 1.0   11-27-2021   Ryan Mercer   Code Optimization
+**/
 @isTest
 public class DuplicateRecordCheck_Test{
     private static Integer NumberOfLoops = 51;
-    private static String City = 'Cabin John';
-    private static String Zip = '20818';
+    private static String City = 'San Francisco';
+    private static String Zip = '94105';
     private static String Name = 'Test';
     private static String Website = 'website.com';
     private static String Email = 'test@test.com';
@@ -58,10 +69,7 @@ public class DuplicateRecordCheck_Test{
         }
 
         Test.startTest();
-            system.debug('cpu time limit ' + limits.getLimitCpuTime());
-            system.debug('before cpu time limit ' + Limits.getCpuTime());
         	List<DuplicateRecordCheck.Duplicate> outputs = DuplicateRecordCheck.findDuplicates(inputs);
-            system.debug('after cpu time limit ' + Limits.getCpuTime());
         Test.stopTest();
 
         System.assertEquals(NumberOfLoops, outputs.size());
@@ -88,10 +96,7 @@ public class DuplicateRecordCheck_Test{
         }
 
         Test.startTest();
-            system.debug('cpu time limit ' + limits.getLimitCpuTime());
-            system.debug('before cpu time limit ' + Limits.getCpuTime());
         	List<DuplicateRecordCheck.Duplicate> outputs = DuplicateRecordCheck.findDuplicates(inputs);
-            system.debug('after cpu time limit ' + Limits.getCpuTime());
         Test.stopTest();
         
         System.assertEquals(NumberOfLoops, outputs.size());
