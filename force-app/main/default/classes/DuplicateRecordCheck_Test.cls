@@ -2,69 +2,71 @@
  * @description       : Test class for DuplicateRecordCheck
  * @author            : Ryan Mercer
  * @group             : Kicksaw
- * @last modified on  : 11-27-2021
+ * @last modified on  : 12-03-2021
  * @last modified by  : Ryan Mercer
  * Modifications Log
  * Ver   Date         Author        Modification
  * 1.0   06-16-2021   Ryan Mercer   Initial Version
- * 1.0   11-27-2021   Ryan Mercer   Code Optimization
+ * 2.0   11-27-2021   Ryan Mercer   Code Optimization
+ * 2.5   12-03-2021   Ryan Mercer   Test Simplification
 **/
 @isTest
 public class DuplicateRecordCheck_Test{
-    private static Integer NumberOfLoops = 51;
-    private static String City = 'San Francisco';
-    private static String Zip = '94105';
-    private static String Name = 'Test';
-    private static String Website = 'website.com';
-    private static String Email = 'test@test.com';
-    private static Database.DMLOptions DML = new Database.DMLOptions();
+    
+    //─────────────────────────────────────────────────────────────────┐
+    // You'll find two methods below:
+    // 1. createDuplicateRecord()
+    // 2. createNonDuplicateRecord()
+    // Based on your org's Duplicate & Matching Rule configuration,
+    // adjust the record data to trigger (or not trigger) your org's rules.
+    //─────────────────────────────────────────────────────────────────┘
+    private static sObject createDuplicateRecord(){
+        // If your org uses the Standard Account Duplicate Rule or Matching Rule
+        // you probably don't want to edit this code.
+        // If your org uses a custom Duplicate and Matching rule,
+        // you will want to edit this code in such a way that the rules will be triggered.
+        Account acct = new Account(
+            Name = 'Salesforce',
+            BillingCity = 'San Francisco',
+            ShippingCity = 'San Francisco',
+            BillingPostalCode = '94105',
+            ShippingPostalCode = '94105',
+            Website = 'www.salesforce.com'
+        );
+        return (sObject) acct;
+    }
+
+    private static sObject createNonDuplicateRecord(){
+        // If your org uses the Standard Account Duplicate Rule or Matching Rule
+        // you probably don't want to edit this code.
+        // If your org uses a custom Duplicate and Matching rule,
+        // you will want to edit this code in such a way that the rules will NOT be triggered
+        // (when compared to the record created by the previous method).
+        Account acct = new Account(
+            Name = 'Some Other Account'
+        );
+        return (sObject) acct;
+    }
+
+    //─────────────────────────────────────────────────────────────────┐
+    // You probably don't want to edit any of the code below this line.
+    //─────────────────────────────────────────────────────────────────┘
     
     @TestSetup
     static void testSetup(){
-        DML.DuplicateRuleHeader.AllowSave = true;
-        
-        Account acct = new Account(
-            Name = Name,
-            BillingCity = City,
-            ShippingCity = City,
-            BillingPostalCode = Zip,
-            ShippingPostalCode = Zip,
-            Website = Website
-        );
-        Database.SaveResult accountSaves = Database.insert(acct, DML);
-        for(Database.Error error : accountSaves.getErrors()){
-            System.debug('testSetup Account insertion error - ' + error);
-        }
-
-        Lead lead = new Lead(
-            LastName = Name,
-            Company = Name,
-            City = City,
-            PostalCode = Zip,
-            Website = Website,
-            Email = Email
-        );
-        Database.SaveResult leadSaves = Database.insert(lead, DML);
-        for(Database.Error error : leadSaves.getErrors()){
-            System.debug('testSetup Lead insertion error - ' + error);
-        }
+        insert createDuplicateRecord();
     }
-    
+
+    // This should be at least 51 for full test coverage.
+    private static Integer NumberOfLoops = 51;
+
     @isTest
-    public static void AccountDupeTest(){
-        Account acct = [SELECT Id FROM Account LIMIT 1];
+    public static void Duplicate_Test(){
+        
         List<DuplicateRecordCheck.Input> inputs = new List<DuplicateRecordCheck.Input>();
         for(Integer i = 1; i <= NumberOfLoops; i++){
-            Account dupeAcct = new Account(
-                Name = Name,
-                BillingCity = City,
-                ShippingCity = City,
-                BillingPostalCode = Zip,
-                ShippingPostalCode = Zip,
-                Website = Website
-            );
             DuplicateRecordCheck.Input input = new DuplicateRecordCheck.Input();
-            input.record = dupeAcct;
+            input.record = createDuplicateRecord();
             inputs.add(input);
         }
 
@@ -72,26 +74,23 @@ public class DuplicateRecordCheck_Test{
         	List<DuplicateRecordCheck.Duplicate> outputs = DuplicateRecordCheck.findDuplicates(inputs);
         Test.stopTest();
 
+        String sObjectName = String.valueOf(createDuplicateRecord().getSObjectType());
+        sObject existingRecord = Database.Query('SELECT Id FROM ' + sObjectName + ' LIMIT 1');
+
         System.assertEquals(NumberOfLoops, outputs.size());
         for(DuplicateRecordCheck.Duplicate output : outputs){
-            system.debug(output);
-
             System.assertEquals(TRUE, output.isDuplicate);
-            System.assertEquals(acct.Id, output.duplicateRecordId);
-            System.assertEquals(string.valueof(acct.getSObjectType()), output.duplicatesObjectType);
+            System.assertEquals(existingRecord.Id, output.duplicateRecordId);
+            System.assertEquals(sObjectName, output.duplicatesObjectType);
         }
     }
     
     @isTest
-    public static void NotaDupeTest(){
+    public static void Non_Duplicate_Test(){
         List<DuplicateRecordCheck.Input> inputs = new List<DuplicateRecordCheck.Input>();
         for(Integer i = 1; i <= NumberOfLoops; i++){
-            Contact dupeCon = new Contact(
-                LastName = Name
-            );
-
 	        DuplicateRecordCheck.Input input = new DuplicateRecordCheck.Input();
-            input.record = dupeCon;
+            input.record = createNonDuplicateRecord();
             inputs.add(input);
         }
 
@@ -108,7 +107,7 @@ public class DuplicateRecordCheck_Test{
     }
 
     @isTest
-    public static void ComparableTest(){
+    public static void Comparable_Test(){
         List<DuplicateRecordCheck.Duplicate> duplicates = new List<DuplicateRecordCheck.Duplicate>();
         for(Integer i = 1; i <= NumberOfLoops; i++){
             if(i == 1){
