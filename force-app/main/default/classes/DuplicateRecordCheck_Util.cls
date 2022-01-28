@@ -1,65 +1,65 @@
 /**
- * @description       : Runs the duplicate rules on a particular record or recordId to see if a duplicate record exists.
+ * @description       : Contains the Utility Method that runs the duplicate rules on a particular record or recordId to see if a duplicate record exists.
  * @author            : Ryan Mercer
- * @group             : Kicksaw
- * @last modified on  : 11-27-2021
- * @last modified by  : Ryan Mercer
+ * @last modified on  : 01-28-2022
+ * @last modified by  : Ryan Mercer 
  * Modifications Log
  * Ver   Date         Author        Modification
- * 1.0   06-16-2021   Ryan Mercer   Initial Version
- * 1.0   11-27-2021   Ryan Mercer   Code Optimization
+ * 1.0   01-28-2022   Ryan Mercer   Initial Version
 **/
+public with sharing class DuplicateRecordCheck_Util {
+    private final FindDuplicates findDuplicates;
 
-public with sharing class DuplicateRecordCheck{
+    private DuplicateRecordCheck_Util(){
+        FindDuplicatesFactory factory = FindDuplicatesFactory.getFactory();
+        this.findDuplicates = factory.getFindDuplicates();
+    }
+
+    private static DuplicateRecordCheck_Util self = new DuplicateRecordCheck_Util();
+
     /**
-    * @description Invocable Method that runs the duplicate rules on a particular record or recordId to see if a duplicate record exists.
-    * @author Ryan Mercer | 11-27-2021 
+    * @description Runs the duplicate rules on records to see if duplicate records exist.
+    * @author Ryan Mercer | 01-27-2022
     * @param List<Input> inputs 
     * @return List<Duplicate> 
     **/
-    @InvocableMethod(
-        label='Check for Duplicate Records'
-        description='Runs the duplicate rules on a particular record or recordId to see if a duplicate record exists.'
-        category='Kicksaw'
-    )
-    public static List<Duplicate> findDuplicates(List<Input> inputs){
-        
+    public static List<Duplicate> findDuplicates(List<sObject> records){
         // The documentation states that the input array for the findDuplicates method is 50.
         // We are instantiating a new list to house the results in case we have to execute the method multiple times.
-        List<Datacloud.FindDuplicatesResult> results = new List<Datacloud.FindDuplicatesResult>();
+        List<FindDuplicates.FindDuplicatesResult> results = new List<FindDuplicates.FindDuplicatesResult>();
         List<sObject> listsObjectsToCheck = new List<sObject>();
-        for(Input input : inputs){
-            listsObjectsToCheck.add(input.record);
+        for(sObject record : records){
+            listsObjectsToCheck.add(record);
             
             // Check to see if the list size equals 50.
             // If so, execute the findDuplicates method and clear the list.
             if(listsObjectsToCheck.size() == 50){
-                results.addAll(Datacloud.FindDuplicates.findDuplicates(listsObjectsToCheck));
+                results.addAll(self.findDuplicates.findDuplicates(listsObjectsToCheck));
                 listsObjectsToCheck.clear();
             }
         }
 
         // Execute the findDuplicates method a final time.
         if(!listsObjectsToCheck.isEmpty()){
-            results.addAll(Datacloud.FindDuplicates.findDuplicates(listsObjectsToCheck));
+            results.addAll(self.findDuplicates.findDuplicates(listsObjectsToCheck));
         }
 
         // The mapIndexToDuplicate is a map where the key is the index and the value is the best Duplicate result (if any exist).
         Integer index = 0;
         Map<Integer,Duplicate> mapIndexToDuplicate = new Map<Integer,Duplicate>();
-        for(Datacloud.FindDuplicatesResult find : results) {
+        for(FindDuplicates.FindDuplicatesResult find : results) {
             // Add the default Duplicate to the map, which is simply Duplicate.isDuplicate = FALSE.
             mapIndexToDuplicate.put(index,new Duplicate(FALSE,null,null,null));
-            for(Datacloud.DuplicateResult result : find.getDuplicateResults()) {
+            for(FindDuplicates.DuplicateResult result : find.getDuplicateResults) {
                 // result has a bunch of information about the Duplicate Rule being applied.
-                for(Datacloud.MatchResult match : result.getMatchResults()) {
+                for(FindDuplicates.MatchResult match : result.getMatchResults) {
                     // match has a bunch of information about the Matching Rule being applied.
                     
                     // Instantiate a new list of Duplicates with the Duplicate from the map.
                     List<Duplicate> duplicates = new List<Duplicate>{mapIndexToDuplicate.get(index)};
-                    for(Datacloud.MatchRecord record : match.getMatchRecords()) {
-                        Id recordId = record.getRecord().Id;
-                        Double matchConfidence = record.getMatchConfidence() == null ? 0 : record.getMatchConfidence();
+                    for(FindDuplicates.MatchRecord record : match.getMatchRecords) {
+                        Id recordId = record.getRecordId;
+                        Double matchConfidence = record.getMatchConfidence == null ? 0 : record.getMatchConfidence;
                         String sObjectType = recordId.getSObjectType().getDescribe().getName();
                         duplicates.add(new Duplicate(TRUE,recordId,sObjectType,matchConfidence));
                     }
@@ -77,15 +77,7 @@ public with sharing class DuplicateRecordCheck{
     }
 
     /**
-    * @description Wrapper class for invocable inputs
-    **/
-    public class Input{
-        @InvocableVariable(label='Record to Check for Duplicates' required=TRUE)
-        public sObject record;
-    }
-
-    /**
-    * @description Wrapper class for invocable outputs
+    * @description Wrapper class for Duplicates
     **/
     public class Duplicate implements Comparable{
         @InvocableVariable(label='Is there a Duplicate?')
@@ -98,7 +90,7 @@ public with sharing class DuplicateRecordCheck{
         public String duplicatesObjectType;
 
         @TestVisible
-        private Double matchConfidence; 
+        private Double matchConfidence;
 
         public Duplicate(Boolean isDuplicate, Id duplicateRecordId, String duplicatesObjectType, Double matchConfidence){
             this.isDuplicate = isDuplicate;
@@ -121,4 +113,3 @@ public with sharing class DuplicateRecordCheck{
         }
     }
 }
-

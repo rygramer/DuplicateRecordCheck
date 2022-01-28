@@ -1,126 +1,101 @@
 /**
  * @description       : Test class for DuplicateRecordCheck
  * @author            : Ryan Mercer
- * @group             : Kicksaw
- * @last modified on  : 12-03-2021
+ * @last modified on  : 01-28-2022
  * @last modified by  : Ryan Mercer
  * Modifications Log
  * Ver   Date         Author        Modification
  * 1.0   06-16-2021   Ryan Mercer   Initial Version
  * 2.0   11-27-2021   Ryan Mercer   Code Optimization
  * 2.5   12-03-2021   Ryan Mercer   Test Simplification
+ * 3.0   01-28-2022   Ryan Mercer   Testing Dependency Injection
 **/
 @isTest
 public class DuplicateRecordCheck_Test{
     
-    //─────────────────────────────────────────────────────────────────┐
-    // You'll find two methods below:
-    // 1. createDuplicateRecord()
-    // 2. createNonDuplicateRecord()
-    // Based on your org's Duplicate & Matching Rule configuration,
-    // adjust the record data to trigger (or not trigger) your org's rules.
-    //─────────────────────────────────────────────────────────────────┘
-    private static sObject createDuplicateRecord(){
-        // If your org uses the Standard Account Duplicate Rule or Matching Rule
-        // you probably don't want to edit this code.
-        // If your org uses a custom Duplicate and Matching rule,
-        // you will want to edit this code in such a way that the rules will be triggered.
-        Account acct = new Account(
-            Name = 'Salesforce',
-            BillingCity = 'San Francisco',
-            ShippingCity = 'San Francisco',
-            BillingPostalCode = '94105',
-            ShippingPostalCode = '94105',
-            Website = 'www.salesforce.com'
-        );
-        return (sObject) acct;
-    }
-
-    private static sObject createNonDuplicateRecord(){
-        // If your org uses the Standard Account Duplicate Rule or Matching Rule
-        // you probably don't want to edit this code.
-        // If your org uses a custom Duplicate and Matching rule,
-        // you will want to edit this code in such a way that the rules will NOT be triggered
-        // (when compared to the record created by the previous method).
-        Account acct = new Account(
-            Name = 'Some Other Account'
-        );
-        return (sObject) acct;
-    }
-
-    //─────────────────────────────────────────────────────────────────┐
-    // You probably don't want to edit any of the code below this line.
-    //─────────────────────────────────────────────────────────────────┘
-    
-    @TestSetup
-    static void testSetup(){
-        insert createDuplicateRecord();
-    }
-
-    // This should be at least 51 for full test coverage.
-    private static Integer NumberOfLoops = 51;
+    private static final Integer NUMBER_OF_LOOPS = 51; // This should be at least 51 for full test coverage.
+    private static final Id MATCHING_ID = '001000000000RGMRGM';
+    private static final String OBJECT_NAME = 'Account';
+    private static Boolean returnDuplicates = true;
 
     @isTest
     public static void Duplicate_Test(){
+        FindDuplicatesFactory.stubFactory = new MockFindDuplicatesFactory();
         
-        List<DuplicateRecordCheck.Input> inputs = new List<DuplicateRecordCheck.Input>();
-        for(Integer i = 1; i <= NumberOfLoops; i++){
-            DuplicateRecordCheck.Input input = new DuplicateRecordCheck.Input();
-            input.record = createDuplicateRecord();
+        List<DuplicateRecordCheck_Invocable.Input> inputs = new List<DuplicateRecordCheck_Invocable.Input>();
+        for(Integer i = 1; i <= NUMBER_OF_LOOPS; i++){
+            DuplicateRecordCheck_Invocable.Input input = new DuplicateRecordCheck_Invocable.Input();
+            input.record = new Account();
             inputs.add(input);
         }
 
-        Test.startTest();
-        	List<DuplicateRecordCheck.Duplicate> outputs = DuplicateRecordCheck.findDuplicates(inputs);
-        Test.stopTest();
+        System.Test.startTest();
+        	List<DuplicateRecordCheck_Util.Duplicate> outputs = DuplicateRecordCheck_Invocable.findDuplicates(inputs);
+        System.Test.stopTest();
 
-        String sObjectName = String.valueOf(createDuplicateRecord().getSObjectType());
-        sObject existingRecord = Database.Query('SELECT Id FROM ' + sObjectName + ' LIMIT 1');
-
-        System.assertEquals(NumberOfLoops, outputs.size());
-        for(DuplicateRecordCheck.Duplicate output : outputs){
+        System.assertEquals(NUMBER_OF_LOOPS, outputs.size());
+        for(DuplicateRecordCheck_Util.Duplicate output : outputs){
             System.assertEquals(TRUE, output.isDuplicate);
-            System.assertEquals(existingRecord.Id, output.duplicateRecordId);
-            System.assertEquals(sObjectName, output.duplicatesObjectType);
+            System.assertEquals(MATCHING_ID, output.duplicateRecordId);
+            System.assertEquals(OBJECT_NAME, output.duplicatesObjectType);
         }
     }
     
     @isTest
     public static void Non_Duplicate_Test(){
-        List<DuplicateRecordCheck.Input> inputs = new List<DuplicateRecordCheck.Input>();
-        for(Integer i = 1; i <= NumberOfLoops; i++){
-	        DuplicateRecordCheck.Input input = new DuplicateRecordCheck.Input();
-            input.record = createNonDuplicateRecord();
+        returnDuplicates = false;
+        FindDuplicatesFactory.stubFactory = new MockFindDuplicatesFactory();
+
+        List<DuplicateRecordCheck_Invocable.Input> inputs = new List<DuplicateRecordCheck_Invocable.Input>();
+        for(Integer i = 1; i <= NUMBER_OF_LOOPS; i++){
+	        DuplicateRecordCheck_Invocable.Input input = new DuplicateRecordCheck_Invocable.Input();
+            input.record = new Account();
             inputs.add(input);
         }
 
-        Test.startTest();
-        	List<DuplicateRecordCheck.Duplicate> outputs = DuplicateRecordCheck.findDuplicates(inputs);
-        Test.stopTest();
+        System.Test.startTest();
+        	List<DuplicateRecordCheck_Util.Duplicate> outputs = DuplicateRecordCheck_Invocable.findDuplicates(inputs);
+        System.Test.stopTest();
         
-        System.assertEquals(NumberOfLoops, outputs.size());
-        for(DuplicateRecordCheck.Duplicate output : outputs){
+        System.assertEquals(NUMBER_OF_LOOPS, outputs.size());
+        for(DuplicateRecordCheck_Util.Duplicate output : outputs){
             System.assertEquals(FALSE, output.isDuplicate);
             System.assertEquals(NULL, output.duplicateRecordId);
             System.assertEquals(NULL, output.duplicatesObjectType);
         }
     }
 
+    @IsTest
+    public static void Factory_Test(){
+        try {
+            List<sObject> records = new List<sObject>{new Account()};
+            
+            System.Test.startTest();
+                FindDuplicatesFactory factory = FindDuplicatesFactory.getFactory();
+                FindDuplicates findDuplicates = factory.getFindDuplicates();
+                List<FindDuplicates.FindDuplicatesResult> duplicates = findDuplicates.findDuplicates(records);
+            System.Test.stopTest();
+
+            system.assertEquals(records.size(), duplicates.size());
+        } catch (Exception ex) {
+            system.debug(ex);
+        }
+    }
+
     @isTest
     public static void Comparable_Test(){
-        List<DuplicateRecordCheck.Duplicate> duplicates = new List<DuplicateRecordCheck.Duplicate>();
-        for(Integer i = 1; i <= NumberOfLoops; i++){
+        List<DuplicateRecordCheck_Util.Duplicate> duplicates = new List<DuplicateRecordCheck_Util.Duplicate>();
+        for(Integer i = 1; i <= NUMBER_OF_LOOPS; i++){
             if(i == 1){
-                duplicates.add(new DuplicateRecordCheck.Duplicate(FALSE,null,null,null));
+                duplicates.add(new DuplicateRecordCheck_Util.Duplicate(FALSE,null,null,null));
             } else {
-                duplicates.add(new DuplicateRecordCheck.Duplicate(TRUE,null,null,i));
+                duplicates.add(new DuplicateRecordCheck_Util.Duplicate(TRUE,null,null,i));
             }
         }
         duplicates.sort();
         
-        Integer counter = NumberOfLoops;
-        for(DuplicateRecordCheck.Duplicate duplicate : duplicates){
-            system.debug(duplicate.matchConfidence);
+        Integer counter = NUMBER_OF_LOOPS;
+        for(DuplicateRecordCheck_Util.Duplicate duplicate : duplicates){
             if(counter == 1){
                 system.assertEquals(null, duplicate.matchConfidence);
             } else {
@@ -128,6 +103,51 @@ public class DuplicateRecordCheck_Test{
             }
             counter--;
         }
+    }
+
+    private class MockFindDuplicatesFactory extends FindDuplicatesFactory{
+        MockFindDuplicatesFactory(){
+            super();
+        }
+
+        public override FindDuplicates getFindDuplicates(){
+            if(returnDuplicates){
+                return new Dupe();
+            } else {
+                return new NotADupe();
+            }
+        }
+    }
+
+    private class Dupe extends FindDuplicates{
         
+        public override List<FindDuplicatesResult> findDuplicates(List<SObject> records){
+            List<FindDuplicatesResult> results = new List<FindDuplicatesResult>();
+
+            for(Integer i = 1; i <= records.size(); i++){
+                List<MatchRecord> matchRecords = new List<MatchRecord>{new MatchRecord((Id)MATCHING_ID,(Double)100.0)};
+                List<MatchResult> matchResults = new List<MatchResult>{new MatchResult(matchRecords)};
+                List<DuplicateResult> duplicateResults = new List<DuplicateResult>{new DuplicateResult(matchResults)};
+                results.add(new FindDuplicatesResult(duplicateResults));
+            }
+
+            return results;
+        }
+        
+    }
+
+    private class NotADupe extends FindDuplicates{
+        public override List<FindDuplicatesResult> findDuplicates(List<SObject> records){
+            List<FindDuplicatesResult> results = new List<FindDuplicatesResult>();
+
+            for(Integer i = 1; i <= records.size(); i++){
+                List<MatchRecord> matchRecords = new List<MatchRecord>();
+                List<MatchResult> matchResults = new List<MatchResult>{new MatchResult(matchRecords)};
+                List<DuplicateResult> duplicateResults = new List<DuplicateResult>{new DuplicateResult(matchResults)};
+                results.add(new FindDuplicatesResult(duplicateResults));
+            }
+
+            return results;
+        }
     }
 }
