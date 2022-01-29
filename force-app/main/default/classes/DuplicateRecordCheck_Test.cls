@@ -26,18 +26,25 @@ public class DuplicateRecordCheck_Test{
         for(Integer i = 1; i <= NUMBER_OF_LOOPS; i++){
             DuplicateRecordCheck_Invocable.Input input = new DuplicateRecordCheck_Invocable.Input();
             input.record = new Account();
+            input.records = new List<sObject>{new Account()};
             inputs.add(input);
         }
 
         System.Test.startTest();
-        	List<DuplicateRecordCheck_Util.Duplicate> outputs = DuplicateRecordCheck_Invocable.findDuplicates(inputs);
+        	List<DuplicateRecordCheck_Invocable.Output> outputs = DuplicateRecordCheck_Invocable.findDuplicates(inputs);
         System.Test.stopTest();
 
         System.assertEquals(NUMBER_OF_LOOPS, outputs.size());
-        for(DuplicateRecordCheck_Util.Duplicate output : outputs){
-            System.assertEquals(TRUE, output.isDuplicate);
-            System.assertEquals(MATCHING_ID, output.duplicateRecordId);
-            System.assertEquals(OBJECT_NAME, output.duplicatesObjectType);
+        for(DuplicateRecordCheck_Invocable.Output output : outputs){
+            System.assertEquals(TRUE, output.Duplicate.isDuplicate);
+            System.assertEquals(MATCHING_ID, output.Duplicate.duplicateRecordId);
+            System.assertEquals(OBJECT_NAME, output.Duplicate.duplicatesObjectType);
+
+            for(Duplicate duplicate : output.duplicates){
+                System.assertEquals(TRUE, duplicate.isDuplicate);
+                System.assertEquals(MATCHING_ID, duplicate.duplicateRecordId);
+                System.assertEquals(OBJECT_NAME, duplicate.duplicatesObjectType);
+            }
         }
     }
     
@@ -54,14 +61,14 @@ public class DuplicateRecordCheck_Test{
         }
 
         System.Test.startTest();
-        	List<DuplicateRecordCheck_Util.Duplicate> outputs = DuplicateRecordCheck_Invocable.findDuplicates(inputs);
+        	List<DuplicateRecordCheck_Invocable.Output> outputs = DuplicateRecordCheck_Invocable.findDuplicates(inputs);
         System.Test.stopTest();
         
         System.assertEquals(NUMBER_OF_LOOPS, outputs.size());
-        for(DuplicateRecordCheck_Util.Duplicate output : outputs){
-            System.assertEquals(FALSE, output.isDuplicate);
-            System.assertEquals(NULL, output.duplicateRecordId);
-            System.assertEquals(NULL, output.duplicatesObjectType);
+        for(DuplicateRecordCheck_Invocable.Output output : outputs){
+            System.assertEquals(FALSE, output.Duplicate.isDuplicate);
+            System.assertEquals(NULL, output.Duplicate.duplicateRecordId);
+            System.assertEquals(NULL, output.Duplicate.duplicatesObjectType);
         }
     }
 
@@ -84,18 +91,18 @@ public class DuplicateRecordCheck_Test{
 
     @isTest
     public static void Comparable_Test(){
-        List<DuplicateRecordCheck_Util.Duplicate> duplicates = new List<DuplicateRecordCheck_Util.Duplicate>();
+        List<Duplicate> duplicates = new List<Duplicate>();
         for(Integer i = 1; i <= NUMBER_OF_LOOPS; i++){
             if(i == 1){
-                duplicates.add(new DuplicateRecordCheck_Util.Duplicate(FALSE,null,null,null));
+                duplicates.add(new Duplicate(FALSE,null,null,null));
             } else {
-                duplicates.add(new DuplicateRecordCheck_Util.Duplicate(TRUE,null,null,i));
+                duplicates.add(new Duplicate(TRUE,null,null,i));
             }
         }
         duplicates.sort();
         
         Integer counter = NUMBER_OF_LOOPS;
-        for(DuplicateRecordCheck_Util.Duplicate duplicate : duplicates){
+        for(Duplicate duplicate : duplicates){
             if(counter == 1){
                 system.assertEquals(null, duplicate.matchConfidence);
             } else {
