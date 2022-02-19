@@ -1,11 +1,10 @@
 /**
  * @description       : Contains the Utility Method that runs the duplicate rules on a particular record(s) to see if a duplicate record(s) exists.
- * @author            : Ryan Mercer
+ * @group             : UnofficialSF
  * @last modified on  : 01-28-2022
- * @last modified by  : Ryan Mercer 
  * Modifications Log
- * Ver   Date         Author        Modification
- * 1.0   01-28-2022   Ryan Mercer   Initial Version
+ * Ver   Date         Modification
+ * 1.0   01-28-2022   Initial Version
 **/
 public with sharing class DuplicateRecordCheck_Util {
     private final FindDuplicates findDuplicates;
