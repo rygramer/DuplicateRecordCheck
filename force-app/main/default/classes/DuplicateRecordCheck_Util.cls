@@ -1,5 +1,5 @@
 /**
- * @description       : Contains the Utility Method that runs the duplicate rules on a particular record or recordId to see if a duplicate record exists.
+ * @description       : Contains the Utility Method that runs the duplicate rules on a particular record(s) to see if a duplicate record(s) exists.
  * @author            : Ryan Mercer
  * @last modified on  : 01-28-2022
  * @last modified by  : Ryan Mercer 
@@ -18,13 +18,12 @@ public with sharing class DuplicateRecordCheck_Util {
     private static DuplicateRecordCheck_Util self = new DuplicateRecordCheck_Util();
 
     /**
-    * @description Runs the duplicate rules on records to see if duplicate records exist.
-    * @author Ryan Mercer | 01-27-2022
+    * @description Runs the duplicate rules on a particular record(s) to see if a duplicate record(s) exists.
     * @param List<Input> inputs 
     * @return List<Duplicate> 
     **/
     public static List<Duplicate> findDuplicates(List<sObject> records){
-        // The documentation states that the input array for the findDuplicates method is 50.
+        // The documentation states that the max input array for the findDuplicates method is 50.
         // We are instantiating a new list to house the results in case we have to execute the method multiple times.
         List<FindDuplicates.FindDuplicatesResult> results = new List<FindDuplicates.FindDuplicatesResult>();
         List<sObject> listsObjectsToCheck = new List<sObject>();

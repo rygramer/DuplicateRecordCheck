@@ -1,17 +1,15 @@
 /**
  * @description       : Exposes the Datacloud FindDuplicates method in extendable fashion so tests can be mocked.
- * @author            : Ryan Mercer
+ * @group             : UnofficialSF
  * @last modified on  : 01-28-2022
- * @last modified by  : Ryan Mercer 
  * Modifications Log
- * Ver   Date         Author        Modification
- * 1.0   01-28-2022   Ryan Mercer   Initial Version
+ * Ver   Date         Modification
+ * 1.0   01-28-2022   Initial Version
 **/
 public with sharing virtual class FindDuplicates {
     
     /**
     * @description Mimics the shape of the Datacloud FindDuplicates method, and instantiates custom classes so that the results can be more easily processed.
-    * @author Ryan Mercer | 01-28-2022 
     * @param List<SObject> records 
     * @return List<FindDuplicatesResult>
     **/

@@ -1,14 +1,13 @@
 /**
  * @description       : Test class for DuplicateRecordCheck
- * @author            : Ryan Mercer
+ * @group             : UnofficialSF
  * @last modified on  : 01-28-2022
- * @last modified by  : Ryan Mercer
  * Modifications Log
- * Ver   Date         Author        Modification
- * 1.0   06-16-2021   Ryan Mercer   Initial Version
- * 2.0   11-27-2021   Ryan Mercer   Code Optimization
- * 2.5   12-03-2021   Ryan Mercer   Test Simplification
- * 3.0   01-28-2022   Ryan Mercer   Testing Dependency Injection
+ * Ver   Date         Modification
+ * 1.0   06-16-2021   Initial Version
+ * 2.0   11-27-2021   Code Optimization
+ * 2.5   12-03-2021   Test Simplification
+ * 3.0   01-28-2022   Testing Dependency Injection
 **/
 @isTest
 public class DuplicateRecordCheck_Test{

@@ -1,3 +1,11 @@
+/**
+ * @description       : Duplicate
+ * @group             : UnofficialSF
+ * @last modified on  : 02-18-2022
+ * Modifications Log
+ * Ver   Date         Modification
+ * 1.0   02-18-2022   Initial Version
+**/
 public with sharing class Duplicate implements Comparable{
     @AuraEnabled
     public Boolean isDuplicate;
